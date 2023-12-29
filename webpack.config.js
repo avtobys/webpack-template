@@ -4,13 +4,15 @@ const path = require('path')
 const autoprefixer = require('autoprefixer')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const miniCssExtractPlugin = require('mini-css-extract-plugin')
+const { PurgeCSSPlugin } = require('purgecss-webpack-plugin')
+const glob = require('glob')
 
 module.exports = {
   mode: 'development',
   entry: './src/js/main.js',
   output: {
-    filename: 'js/[contenthash].js',
-    chunkFilename: 'js/[contenthash].js',
+    filename: 'assets/js/[contenthash].js',
+    chunkFilename: 'assets/js/[contenthash].js',
     path: path.resolve(__dirname, 'dist')
   },
   devServer: {
@@ -21,7 +23,45 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({ template: './src/index.html', inject: 'body' }),
     new miniCssExtractPlugin({
-      filename: 'css/[contenthash].css',
+      filename: 'assets/css/[contenthash].css',
+    }),
+    new PurgeCSSPlugin({
+      paths: glob.sync(`${path.join(__dirname, 'src')}/**/*`, { nodir: true }),
+      safelist: {
+        standard: [
+          // Bootstrap classes that might be added dynamically
+          'fade', 'show', 'collapsing', 'overflow',
+          // Modal related classes
+          'modal', 'modal-dialog', 'modal-open', 'modal-backdrop', 'offcanvas-backdrop',
+          // Dropdowns
+          'dropdown', 'dropdown-menu', 'dropdown-toggle',
+          // Popovers
+          'popover', 'popover-header', 'popover-body', 'bs-popover-auto', 'h3',
+          // Tooltips
+          'tooltip', 'tooltip-inner', 'arrow', 'bs-popover-top-arrow', 'bs-popover-right-arrow', 'bs-popover-bottom-arrow', 'bs-popover-left-arrow',
+          // Other
+          'carousel', 'carousel-inner', 'carousel-item',
+          // ... any other classes you want to keep
+        ],
+        deep: [
+          // Deep classes: regex pattern for classes that follow certain naming conventions
+          /^modal-/, /^carousel-/, /^tooltip-/, /^popover-/, /^dropdown-/, /^bs-popover-.*-arrow$/, /^bs-popover-/, /^offcanvas-/
+          // ... any other regex patterns for classes
+        ],
+        greedy: [
+          // Greedy classes: regex patterns for more complex class combinations
+          // ... any complex selectors
+        ],
+        keyframes: [
+          // Keyframes used in Bootstrap animations
+          'fade', 'collapse', 'modal', 'carousel',
+          // ... any other keyframes you want to keep
+        ],
+        variables: [
+          // CSS variables (custom properties) that Bootstrap might use
+          // ... any variables you want to keep
+        ]
+      },
     })
   ],
   module: {
@@ -31,7 +71,7 @@ module.exports = {
         scheme: 'data',
         type: 'asset/resource',
         generator: {
-          filename: 'icons/[hash].svg'
+          filename: 'assets/icons/[hash].svg'
         }
       },
       {
