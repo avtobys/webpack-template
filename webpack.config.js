@@ -6,6 +6,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const miniCssExtractPlugin = require('mini-css-extract-plugin')
 const { PurgeCSSPlugin } = require('purgecss-webpack-plugin')
 const glob = require('glob')
+const TerserPlugin = require('terser-webpack-plugin')
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 
 module.exports = {
   mode: 'development',
@@ -67,14 +69,6 @@ module.exports = {
   module: {
     rules: [
       {
-        mimetype: 'image/svg+xml',
-        scheme: 'data',
-        type: 'asset/resource',
-        generator: {
-          filename: 'assets/icons/[hash].svg'
-        }
-      },
-      {
         test: /\.(scss)$/,
         use: [
           {
@@ -101,7 +95,35 @@ module.exports = {
             loader: 'sass-loader'
           }
         ]
+      },
+      {
+        test: /\.(woff(2)?|ttf|eot)(\?v=\d+\.\d+\.\d+)?$/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/fonts/[name][ext]'
+        }
       }
     ]
-  }
+  },
+  optimization: {
+    minimize: true, // Включает минимизацию
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          format: {
+            comments: false, // Удаляет комментарии
+          },
+        },
+        extractComments: false, // Не извлекать комментарии в отдельный файл
+      }),
+      new CssMinimizerPlugin({
+        minimizerOptions: {
+          preset: [
+            'default',
+            { discardComments: { removeAll: true } }, // Удаляет все комментарии из CSS
+          ],
+        },
+      }),
+    ],
+  },
 }
