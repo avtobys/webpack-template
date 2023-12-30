@@ -1,6 +1,7 @@
 'use strict'
 
 const path = require('path')
+const fs = require('fs')
 const autoprefixer = require('autoprefixer')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const miniCssExtractPlugin = require('mini-css-extract-plugin')
@@ -8,6 +9,18 @@ const { PurgeCSSPlugin } = require('purgecss-webpack-plugin')
 const glob = require('glob')
 const TerserPlugin = require('terser-webpack-plugin')
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
+
+// Папка с HTML файлами
+const htmlPagesPath = './src';
+const htmlPlugins = fs.readdirSync(htmlPagesPath).filter(file => {
+  return file.endsWith('.html');
+}).map(file => {
+  return new HtmlWebpackPlugin({
+    template: path.join(htmlPagesPath, file),
+    filename: file,
+    inject: 'body'
+  });
+})
 
 module.exports = {
   mode: 'development',
@@ -23,7 +36,7 @@ module.exports = {
     hot: true
   },
   plugins: [
-    new HtmlWebpackPlugin({ template: './src/index.html', inject: 'body' }),
+    ...htmlPlugins,
     new miniCssExtractPlugin({
       filename: 'assets/css/[contenthash].css',
     }),
